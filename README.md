@@ -10,7 +10,7 @@
 ### Platform
 
 - [NumPy](http://www.numpy.org)
-- [Theaon](http://deeplearning.net/software/theano/index.html)
+- [Theano](http://deeplearning.net/software/theano/index.html)
 - [Keras](http://keras.io/)
 - [pygame](http://www.pygame.org/hifi.html)
 - [H5py](http://www.h5py.org/)
