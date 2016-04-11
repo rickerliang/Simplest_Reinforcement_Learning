@@ -84,7 +84,8 @@ def makeMove(state, action):
 
     #up (row - 1)
     if action==0:
-        new_loc = (player_loc[0] - 1, player_loc[1])
+        x = player_loc[0] - 1
+        new_loc = (x if x > -1 else 3, player_loc[1])
         #print("new loc")
         #print(new_loc)
         if (new_loc != wall):
@@ -92,7 +93,8 @@ def makeMove(state, action):
                 state[new_loc][3] = 1
     #down (row + 1)
     elif action==1:
-        new_loc = (player_loc[0] + 1, player_loc[1])
+        x = player_loc[0] + 1
+        new_loc = (x if x < 4 else 0, player_loc[1])
         #print("new loc")
         #print(new_loc)
         if (new_loc != wall):
@@ -100,7 +102,8 @@ def makeMove(state, action):
                 state[new_loc][3] = 1
     #left (column - 1)
     elif action==2:
-        new_loc = (player_loc[0], player_loc[1] - 1)
+        y = player_loc[1] - 1
+        new_loc = (player_loc[0], y if y > -1 else 3)
         #print("new loc")
         #print(new_loc)
         if (new_loc != wall):
@@ -108,7 +111,8 @@ def makeMove(state, action):
                 state[new_loc][3] = 1
     #right (column + 1)
     elif action==3:
-        new_loc = (player_loc[0], player_loc[1] + 1)
+        y = player_loc[1] + 1
+        new_loc = (player_loc[0], y if y < 4 else 0)
         #print("new loc")
         #print(new_loc)
         if (new_loc != wall):

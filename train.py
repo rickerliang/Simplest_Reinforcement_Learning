@@ -72,26 +72,34 @@ def mini_batch():
 def train():
     print("training")
 
-    epsilon = 1
     epochs = 100000
+    epsilon = 1
     history_indexer = 0
-    train_step = 0 # % model_hat_update_freq == 0 => update model_hat
+    before_perf = 0
+    i = 0
+    retrain_count = 0
 
-    print("epochs {0}".format(epochs))    
-
-    for i in range(epochs):
-        if (i % 100 == 0):
-            print("{0}th epochs".format(i))    
+    while(True):
+        i += 1
+        if (i % 1000 == 0):
+            print("validate model performance")
+            current_model_perf = validate()
+            if (current_model_perf > before_perf):
+                retrain_count = 0
+                before_perf = current_model_perf
+                print("update model_hat")
+                model.save_weights(model_weight_path, True)
+                model_hat.load_weights(model_weight_path)
+            else:
+                retrain_count += 1
+                if (retrain_count == 10):
+                    return
+                print("retrain")
+                model.load_weights(model_weight_path)
         state = initGridRand() #using the harder state initialization function
         status = 1
         #while game still in progress
         while(status == 1):
-            train_step += 1
-            if (train_step % model_hat_update_freq == 0):
-                # model_hat <= model
-                print("update model_hat")
-                model.save_weights(model_weight_path, True)
-                model_hat.load_weights(model_weight_path)
             #We are in state S
             #Let's run our Q function on S to get Q values for all possible actions
             qval = model.predict(state.reshape(1,64), batch_size=1)
@@ -145,7 +153,7 @@ def testAlgo(init=0):
         print('Move #: %s; Taking action: %s' % (i, arrow[action]))
         state = makeMove(state, action)
         print(dispGrid(state))
-        time.sleep(0.1)
+        #time.sleep(0.1)
         reward = getReward(state)
         if reward != -1:
             status = 0
@@ -159,12 +167,13 @@ def testAlgo(init=0):
 
 def validate():
     valid = 0;
-    for j in range(100):
-        reward = testAlgo(init=1)
+    for j in range(1000):
+        reward = testAlgo(init=2)
         print(reward)
         if (reward > 0):
             valid += reward
     print(valid)
+    return valid
 
 train()
 validate()
