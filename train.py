@@ -11,12 +11,12 @@ import time
 def build_model():
     print("modeling")
     model = Sequential()
-    model.add(Dense(64, init='lecun_uniform', input_shape=(64,)))
+    model.add(Dense(128, init='lecun_uniform', input_shape=(64,)))
     model.add(LeakyReLU(alpha=0.01))
     #model.add(Activation('relu'))
     #model.add(Dropout(0.5)) #I'm not using dropout, but maybe you wanna give it a try?
 
-    model.add(Dense(16, init='lecun_uniform'))
+    model.add(Dense(128, init='lecun_uniform'))
     model.add(LeakyReLU(alpha=0.01))
     #model.add(Activation('relu'))
     #model.add(Dropout(0.5))
@@ -111,9 +111,11 @@ def train():
             #print("action")
             #print(action)
             #print(dispGrid(state))
-            new_state = makeMove(state, action)
+            new_state, hit_wall = makeMove(state, action)
             #Observe reward
             reward_current = getReward(new_state)
+            if hit_wall:
+                reward_current = -2
             #print("reward_a")
             #print(reward_current)
             #Experience replay storage
@@ -128,7 +130,7 @@ def train():
                 #print("Game #: %s" % (i,))
                 mini_batch()                
             state = new_state
-            if reward_current != -1: #if reached terminal state, update game status
+            if reward_current == -10 or reward_current == 10: #if reached terminal state, update game status
                 status = 0
         if epsilon > 0.1: #decrement epsilon over time
             epsilon -= (1/epochs)
@@ -151,7 +153,7 @@ def testAlgo(init=0):
         qval = model.predict(state.reshape(1,64), batch_size=1)
         action = (np.argmax(qval)) #take action with highest Q-value
         print('Move #: %s; Taking action: %s' % (i, arrow[action]))
-        state = makeMove(state, action)
+        state = makeMove(state, action)[0]
         print(dispGrid(state))
         #time.sleep(0.1)
         reward = getReward(state)
@@ -177,5 +179,5 @@ def validate():
 
 train()
 validate()
-model.save_weights("./model_weight.complete", True)
+model_hat.save_weights("./model_weight.complete", True)
 

@@ -81,6 +81,7 @@ def makeMove(state, action):
     goal = findLoc(state, np.array([1,0,0,0]))
     pit = findLoc(state, np.array([0,1,0,0]))
     state = np.zeros((4,4,4))
+    hit_wall = False
 
     #up (row - 1)
     if action==0:
@@ -91,6 +92,8 @@ def makeMove(state, action):
         if (new_loc != wall):
             if ((np.array(new_loc) <= (3,3)).all() and (np.array(new_loc) >= (0,0)).all()):
                 state[new_loc][3] = 1
+        else:
+            hit_wall = True
     #down (row + 1)
     elif action==1:
         x = player_loc[0] + 1
@@ -100,6 +103,8 @@ def makeMove(state, action):
         if (new_loc != wall):
             if ((np.array(new_loc) <= (3,3)).all() and (np.array(new_loc) >= (0,0)).all()):
                 state[new_loc][3] = 1
+        else:
+            hit_wall = True
     #left (column - 1)
     elif action==2:
         y = player_loc[1] - 1
@@ -109,6 +114,8 @@ def makeMove(state, action):
         if (new_loc != wall):
             if ((np.array(new_loc) <= (3,3)).all() and (np.array(new_loc) >= (0,0)).all()):
                 state[new_loc][3] = 1
+        else:
+            hit_wall = True
     #right (column + 1)
     elif action==3:
         y = player_loc[1] + 1
@@ -118,6 +125,8 @@ def makeMove(state, action):
         if (new_loc != wall):
             if ((np.array(new_loc) <= (3,3)).all() and (np.array(new_loc) >= (0,0)).all()):
                 state[new_loc][3] = 1
+        else:
+            hit_wall = True
 
     new_player_loc = findLoc(state, np.array([0,0,0,1]))
     if (not new_player_loc):
@@ -129,7 +138,7 @@ def makeMove(state, action):
     #re-place goal
     state[goal][0] = 1
 
-    return state
+    return state, hit_wall
 
 def getLoc(state, level):
     for i in range(0,4):

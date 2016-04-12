@@ -11,12 +11,12 @@ import time
 def build_model():
     print("modeling")
     model = Sequential()
-    model.add(Dense(64, init='lecun_uniform', input_shape=(64,)))
+    model.add(Dense(128, init='lecun_uniform', input_shape=(64,)))
     model.add(LeakyReLU(alpha=0.01))
     #model.add(Activation('relu'))
     #model.add(Dropout(0.5)) #I'm not using dropout, but maybe you wanna give it a try?
 
-    model.add(Dense(16, init='lecun_uniform'))
+    model.add(Dense(128, init='lecun_uniform'))
     model.add(LeakyReLU(alpha=0.01))
     #model.add(Activation('relu'))
     #model.add(Dropout(0.5))
@@ -49,7 +49,7 @@ def testAlgo(init=0):
         qval = model.predict(state.reshape(1,64), batch_size=1)
         action = (np.argmax(qval)) #take action with highest Q-value
         print('Move #: %s; Taking action: %s' % (i, arrow[action]))
-        state = makeMove(state, action)
+        state = makeMove(state, action)[0]
         #print(dispGrid(state))
         reward = getReward(state)
         if reward != -1:
