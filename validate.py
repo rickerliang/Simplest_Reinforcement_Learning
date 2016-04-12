@@ -1,33 +1,10 @@
 from gridworld import initGrid, makeMove, getReward, dispGrid, initGridRand, initGridPlayer
+from networkmodel import build_model
 import drawgridworld
 from keras.models import Sequential
-from keras.layers.core import Dense, Dropout, Activation
-from keras.optimizers import RMSprop, Adam
-from keras.layers.advanced_activations import LeakyReLU
 import numpy as np
 import random
 import time
-
-def build_model():
-    print("modeling")
-    model = Sequential()
-    model.add(Dense(128, init='lecun_uniform', input_shape=(64,)))
-    model.add(LeakyReLU(alpha=0.01))
-    #model.add(Activation('relu'))
-    #model.add(Dropout(0.5)) #I'm not using dropout, but maybe you wanna give it a try?
-
-    model.add(Dense(128, init='lecun_uniform'))
-    model.add(LeakyReLU(alpha=0.01))
-    #model.add(Activation('relu'))
-    #model.add(Dropout(0.5))
-
-    model.add(Dense(4, init='lecun_uniform'))
-    model.add(Activation('linear')) #linear output so we can have range of real-valued outputs
-
-    rms = RMSprop()
-    adam = Adam()
-    model.compile(loss='mse', optimizer=adam)
-    return model
 
 def testAlgo(init=0):
     arrow = ["^", "v", "<", ">"]
@@ -57,11 +34,12 @@ def testAlgo(init=0):
             print("Reward: %s" % (reward,))
         i += 1 #If we're taking more than 10 actions, just stop, we probably can't win this game
         drawgridworld.draw_state(state, i - 10)
-        time.sleep(0.5)
+        time.sleep(0.1)
         if (i > 10):
             print("Game lost; too many moves.")
             reward = -10
             break
+    time.sleep(0.5)
     return reward
 
 def validate():

@@ -1,39 +1,15 @@
 from gridworld import initGrid, makeMove, getReward, dispGrid, initGridRand, initGridPlayer
-
+from networkmodel import build_model
 from keras.models import Sequential
-from keras.layers.core import Dense, Dropout, Activation
-from keras.optimizers import RMSprop, Adam
-from keras.layers.advanced_activations import LeakyReLU
 import numpy as np
 import random
 import time
 
-def build_model():
-    print("modeling")
-    model = Sequential()
-    model.add(Dense(128, init='lecun_uniform', input_shape=(64,)))
-    model.add(LeakyReLU(alpha=0.01))
-    #model.add(Activation('relu'))
-    #model.add(Dropout(0.5)) #I'm not using dropout, but maybe you wanna give it a try?
-
-    model.add(Dense(128, init='lecun_uniform'))
-    model.add(LeakyReLU(alpha=0.01))
-    #model.add(Activation('relu'))
-    #model.add(Dropout(0.5))
-
-    model.add(Dense(4, init='lecun_uniform'))
-    model.add(Activation('linear')) #linear output so we can have range of real-valued outputs
-
-    rms = RMSprop()
-    adam = Adam()
-    model.compile(loss='mse', optimizer=adam)
-    return model
-
 replay = [] #stores tuples of (S, A, R, S')
 model_weight_path = "./model.weight"
-batchSize = 40
-buffer = 80
-model_hat_update_freq = 3000 # step
+batchSize = 20
+buffer = 40
+model_hat_update_freq = 1000 # step
 model_hat = build_model()
 model = build_model()
 model_hat.save_weights(model_weight_path, True)
@@ -72,8 +48,8 @@ def mini_batch():
 def train():
     print("training")
 
-    epochs = 100000
-    epsilon = 1
+    epsilon_decay = 1.0/10000
+    epsilon = 1.0
     history_indexer = 0
     before_perf = 0
     i = 0
@@ -81,13 +57,14 @@ def train():
 
     while(True):
         i += 1
-        if (i % 1000 == 0):
+        if (i % model_hat_update_freq == 0):
             print("validate model performance")
             current_model_perf = validate()
             if (current_model_perf > before_perf):
                 retrain_count = 0
                 before_perf = current_model_perf
                 print("update model_hat")
+                print(epsilon)
                 model.save_weights(model_weight_path, True)
                 model_hat.load_weights(model_weight_path)
             else:
@@ -95,6 +72,7 @@ def train():
                 if (retrain_count == 10):
                     return
                 print("retrain")
+                print(epsilon)
                 model.load_weights(model_weight_path)
         state = initGridRand() #using the harder state initialization function
         status = 1
@@ -133,7 +111,7 @@ def train():
             if reward_current == -10 or reward_current == 10: #if reached terminal state, update game status
                 status = 0
         if epsilon > 0.1: #decrement epsilon over time
-            epsilon -= (1/epochs)
+            epsilon -= epsilon_decay
 
 def testAlgo(init=0):
     arrow = ["^", "v", "<", ">"]
