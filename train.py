@@ -58,7 +58,14 @@ def train():
 
     while(True):
         i += 1
-        if (i % model_hat_update_freq == 0):
+        can_update = False
+        if (epsilon > 0.2 and i % model_hat_update_freq == 0):
+            can_update = True
+        elif (epsilon > 0.02 and i % (model_hat_update_freq * 2) == 0):
+            can_update = True
+        elif (i % (model_hat_update_freq * 4) == 0):
+            can_update = True
+        if (can_update):
             print("validate model performance")
             current_model_perf = validate()
             print("before %d - current %d" %(before_perf, current_model_perf))
@@ -80,6 +87,8 @@ def train():
                     epsilon -= epsilon_decay
                 elif (epsilon > 0.02):
                     epsilon -= epsilon_decay / 10.0
+                elif (epsilon > 0.002):
+                    epsilon -= epsilon_decay / 100.0
                 print("epsilon %f" % epsilon)
                 model.load_weights(model_weight_path)
         state = initGridRand() #using the harder state initialization function
@@ -118,8 +127,6 @@ def train():
             state = new_state
             if reward_current == -10 or reward_current == 10: #if reached terminal state, update game status
                 status = 0
-        #if epsilon > 0.1: #decrement epsilon over time
-        #    epsilon -= epsilon_decay
 
 def testAlgo(init=0):
     arrow = ["^", "v", "<", ">"]
