@@ -15,6 +15,7 @@ model = build_model()
 model_hat.save_weights(model_weight_path, True)
 model.load_weights(model_weight_path)
 mini_batch_step = 0
+retrain_limit = 50
 
 def mini_batch():
     global mini_batch_step
@@ -39,7 +40,7 @@ def mini_batch():
         y[0][action] = update
         x_train.append(old_state.reshape(64,))
         y_train.append(y.reshape(4,))
-    if ((mini_batch_step % 100) > 0):
+    if ((mini_batch_step % 1000) > 0):
         model.fit(np.array(x_train), np.array(y_train), batch_size=batchSize, nb_epoch=1, verbose=0)
     else:
         # verbose
@@ -48,7 +49,7 @@ def mini_batch():
 def train():
     print("training")
 
-    epsilon_decay = 1.0/10000
+    epsilon_decay = 1.0/20
     epsilon = 1.0
     history_indexer = 0
     before_perf = 0
@@ -60,19 +61,26 @@ def train():
         if (i % model_hat_update_freq == 0):
             print("validate model performance")
             current_model_perf = validate()
+            print("before %d - current %d" %(before_perf, current_model_perf))
             if (current_model_perf > before_perf):
                 retrain_count = 0
                 before_perf = current_model_perf
                 print("update model_hat")
-                print(epsilon)
+                print("epsilon %f" % epsilon)
                 model.save_weights(model_weight_path, True)
                 model_hat.load_weights(model_weight_path)
             else:
                 retrain_count += 1
-                if (retrain_count == 10):
+                if (retrain_count > retrain_limit):
+                    print("retrain limit reached")
+                    print(before_perf)
                     return
                 print("retrain")
-                print(epsilon)
+                if (epsilon > 0.2):
+                    epsilon -= epsilon_decay
+                elif (epsilon > 0.02):
+                    epsilon -= epsilon_decay / 10.0
+                print("epsilon %f" % epsilon)
                 model.load_weights(model_weight_path)
         state = initGridRand() #using the harder state initialization function
         status = 1
@@ -110,8 +118,8 @@ def train():
             state = new_state
             if reward_current == -10 or reward_current == 10: #if reached terminal state, update game status
                 status = 0
-        if epsilon > 0.1: #decrement epsilon over time
-            epsilon -= epsilon_decay
+        #if epsilon > 0.1: #decrement epsilon over time
+        #    epsilon -= epsilon_decay
 
 def testAlgo(init=0):
     arrow = ["^", "v", "<", ">"]
@@ -124,23 +132,23 @@ def testAlgo(init=0):
         state = initGridRand()
 
     #print("Initial State:")
-    print(dispGrid(state))
+    #print(dispGrid(state))
     status = 1
     #while game still in progress
     while(status == 1):
         qval = model.predict(state.reshape(1,64), batch_size=1)
         action = (np.argmax(qval)) #take action with highest Q-value
-        print('Move #: %s; Taking action: %s' % (i, arrow[action]))
+        #print('Move #: %s; Taking action: %s' % (i, arrow[action]))
         state = makeMove(state, action)[0]
-        print(dispGrid(state))
+        #print(dispGrid(state))
         #time.sleep(0.1)
         reward = getReward(state)
         if reward != -1:
             status = 0
-            print("Reward: %s" % (reward,))
+            #print("Reward: %s" % (reward,))
         i += 1 #If we're taking more than 10 actions, just stop, we probably can't win this game
         if (i > 10):
-            print("Game lost; too many moves.")
+            #print("Game lost; too many moves.")
             reward = -10
             break
     return reward
@@ -149,10 +157,10 @@ def validate():
     valid = 0;
     for j in range(1000):
         reward = testAlgo(init=2)
-        print(reward)
+        #print(reward)
         if (reward > 0):
             valid += reward
-    print(valid)
+    print("validate reward %d" % valid)
     return valid
 
 train()
