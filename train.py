@@ -33,7 +33,7 @@ def mini_batch():
         maxQ = np.max(newQ)
         y = np.zeros((1,4))
         y[:] = old_qval[:]
-        if reward == -1: #non-terminal state
+        if (reward != -10) and (reward != 10): #non-terminal state
             update = (reward + (gamma * maxQ))
         else: #terminal state
             update = reward
@@ -61,28 +61,16 @@ def train():
         can_update = False
         if (epsilon > 0.2 and i % model_hat_update_freq == 0):
             can_update = True
-        elif (epsilon > 0.02 and i % (model_hat_update_freq * 2) == 0):
-            can_update = True
-        elif (i % (model_hat_update_freq * 4) == 0):
+        elif (i % (model_hat_update_freq * 5) == 0):
             can_update = True
         if (can_update):
             print("validate model performance")
             current_model_perf = validate()
-            print("before %d - current %d" %(before_perf, current_model_perf))
+            print("best %d - now %d" %(before_perf, current_model_perf))
             if (current_model_perf > before_perf):
                 retrain_count = 0
                 before_perf = current_model_perf
                 print("update model_hat")
-                print("epsilon %f" % epsilon)
-                model.save_weights(model_weight_path, True)
-                model_hat.load_weights(model_weight_path)
-            else:
-                retrain_count += 1
-                if (retrain_count > retrain_limit):
-                    print("retrain limit reached")
-                    print(before_perf)
-                    return
-                print("retrain")
                 if (epsilon > 0.2):
                     epsilon -= epsilon_decay
                 elif (epsilon > 0.02):
@@ -90,7 +78,17 @@ def train():
                 elif (epsilon > 0.002):
                     epsilon -= epsilon_decay / 100.0
                 print("epsilon %f" % epsilon)
-                model.load_weights(model_weight_path)
+                model.save_weights(model_weight_path, True)
+                model_hat.load_weights(model_weight_path)
+            else:
+                retrain_count += 1
+                if (retrain_count > retrain_limit):
+                    print("retrain limit reached")
+                    print("best performance %d" % before_perf)
+                    return
+                print("retrain")
+                print("epsilon %f" % epsilon)
+                #model.load_weights(model_weight_path)
         state = initGridRand() #using the harder state initialization function
         status = 1
         #while game still in progress
@@ -162,7 +160,7 @@ def testAlgo(init=0):
 
 def validate():
     valid = 0;
-    for j in range(1000):
+    for j in range(10000):
         reward = testAlgo(init=2)
         #print(reward)
         if (reward > 0):
