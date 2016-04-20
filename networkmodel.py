@@ -16,8 +16,8 @@ def build_model():
     #model.add(Activation('relu'))
     #model.add(Dropout(0.5))
 
-    #model.add(Dense(64, init='lecun_uniform'))
-    #model.add(LeakyReLU(alpha=0.01))
+    model.add(Dense(64, init='lecun_uniform'))
+    model.add(LeakyReLU(alpha=0.01))
 
     model.add(Dense(4, init='lecun_uniform'))
     model.add(Activation('linear')) #linear output so we can have range of real-valued outputs
