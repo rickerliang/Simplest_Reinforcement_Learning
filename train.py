@@ -17,6 +17,21 @@ model.load_weights(model_weight_path)
 mini_batch_step = 0
 retrain_limit = 50
 
+def argmax(array):
+    actions = array[0]
+    max = actions[0]
+    max_index_list = [0]
+    for i in range(1, actions.size):
+        if (actions[i] > max):
+            max_index_list = [i]
+            max = actions[i]
+        elif (actions[i] == max):
+            max_index_list.append(i)
+    ret = max_index_list[np.random.randint(0, len(max_index_list))]
+    #print("actions %s" % (actions,))
+    #print("argmax %d" % ret)
+    return ret
+
 def mini_batch():
     global mini_batch_step
     mini_batch_step += 1
@@ -99,7 +114,7 @@ def train():
             if (random.random() < epsilon): #choose random action
                 action = np.random.randint(0,4)
             else: #choose best action from Q(s,a) values
-                action = (np.argmax(qval))
+                action = (argmax(qval))
             #Take action, observe new state S'
             #print("action")
             #print(action)
@@ -142,7 +157,7 @@ def testAlgo(init=0):
     #while game still in progress
     while(status == 1):
         qval = model.predict(state.reshape(1,64), batch_size=1)
-        action = (np.argmax(qval)) #take action with highest Q-value
+        action = (argmax(qval)) #take action with highest Q-value
         #print('Move #: %s; Taking action: %s' % (i, arrow[action]))
         state = makeMove(state, action)[0]
         #print(dispGrid(state))
